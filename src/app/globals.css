@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Superfícies — "chapa de alumínio escovado" */
+  --bg: #F2F4F5;
+  --surface: #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --border: #DFE3E6;
+  --border-strong: #C5CBD0;
+
+  /* Tipografia */
+  --ink: #1A1D21;
+  --ink-muted: #6B7280;
+  --ink-faint: #9CA3AF;
+
+  /* Marca — azul de planta técnica (blueprint) */
+  --blueprint: #1D3557;
+  --blueprint-hover: #16283F;
+  --blueprint-tint: #E8EEF4;
+
+  /* Sinalização — âmbar, como luz de alerta de painel de máquina */
+  --signal: #E8A33D;
+  --signal-tint: #FBF0DC;
+
+  --success: #2F855A;
+  --success-tint: #E7F3EC;
+  --danger: #C0392B;
+  --danger-tint: #FBE9E7;
+
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --shadow-card: 0 1px 2px rgba(26, 29, 33, 0.06), 0 1px 1px rgba(26, 29, 33, 0.04);
+  --shadow-card-hover: 0 4px 12px rgba(26, 29, 33, 0.10);
+}
+
+[data-theme='dark'] {
+  --bg: #14171A;
+  --surface: #1C2024;
+  --surface-raised: #22262B;
+  --border: #2C3238;
+  --border-strong: #3A4148;
+
+  --ink: #EDEFF1;
+  --ink-muted: #9AA1A9;
+  --ink-faint: #6B7280;
+
+  --blueprint: #5B84AC;
+  --blueprint-hover: #6F97BC;
+  --blueprint-tint: #1E2A36;
+
+  --signal: #E8A33D;
+  --signal-tint: #2E2717;
+
+  --success: #4FAE7C;
+  --success-tint: #16261E;
+  --danger: #E0685A;
+  --danger-tint: #2B1D1B;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  margin: 0;
+}
+
+.font-display { font-family: var(--font-display); }
+.font-mono { font-family: var(--font-mono); }
+
+:focus-visible {
+  outline: 2px solid var(--blueprint);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

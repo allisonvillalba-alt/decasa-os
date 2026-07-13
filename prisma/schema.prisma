@@ -1,0 +1,345 @@
+// ============================================================
+// DeCasa OS — Modelo de Dados
+// Sistema Operacional Comercial Inteligente
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------
+// USUÁRIOS E PERMISSÕES
+// ------------------------------------------------------------
+
+enum PapelUsuario {
+  ADMIN
+  VENDEDOR
+  GESTOR
+}
+
+model Usuario {
+  id            String   @id @default(cuid())
+  nome          String
+  email         String   @unique
+  senhaHash     String   // nunca armazenar senha em texto puro — bcrypt
+  papel         PapelUsuario @default(VENDEDOR)
+  ativo         Boolean  @default(true)
+  criadoEm      DateTime @default(now())
+
+  negociacoes   Negociacao[]
+  followUps     FollowUp[]
+  tarefas       Tarefa[]
+  logsAgente    ExecucaoAgente[]
+  logsAtividade LogAtividade[]
+}
+
+// ------------------------------------------------------------
+// EMPRESAS E CONTATOS (B2B: construtoras, arquitetos, engenharia)
+// ------------------------------------------------------------
+
+enum TipoEmpresa {
+  CONSTRUTORA
+  INCORPORADORA
+  ESCRITORIO_ARQUITETURA
+  ENGENHARIA
+  FACHADA_RETROFIT
+  OUTRO
+}
+
+model Empresa {
+  id           String   @id @default(cuid())
+  nome         String
+  tipo         TipoEmpresa @default(OUTRO)
+  cidade       String?
+  estado       String?
+  site         String?
+  linkedin     String?
+  observacoes  String?
+  origemProspec Boolean @default(false) // veio do módulo de prospecção B2B
+  criadoEm     DateTime @default(now())
+
+  contatos     Contato[]
+  negociacoes  Negociacao[]
+}
+
+model Contato {
+  id          String   @id @default(cuid())
+  nome        String
+  cargo       String?
+  telefone    String?
+  email       String?
+  linkedin    String?
+  empresaId   String?
+  empresa     Empresa? @relation(fields: [empresaId], references: [id])
+  criadoEm    DateTime @default(now())
+
+  negociacoes Negociacao[]
+  conversas   Conversa[]
+}
+
+// ------------------------------------------------------------
+// LEADS → NEGOCIAÇÕES (o núcleo do funil)
+// ------------------------------------------------------------
+
+enum OrigemLead {
+  WHATSAPP
+  LANDING_PAGE
+  FACEBOOK
+  INSTAGRAM
+  GOOGLE
+  EMAIL
+  PLANILHA_IMPORTACAO
+  PROSPECCAO_B2B
+  INDICACAO
+  OUTRO
+}
+
+model Lead {
+  id              String   @id @default(cuid())
+  nome            String?
+  telefone        String?
+  email           String?
+  cidade          String?
+  estado          String?
+  origem          OrigemLead
+  interesseBruto  String?  // texto cru recebido, antes da IA interpretar
+  produtosInteresse String[] // inferido por IA: ["janela", "porta", "guarda-corpo"...]
+  urgenciaInferida String?  // "alta" | "media" | "baixa" — inferido por IA
+  valorEstimado   Decimal? @db.Decimal(12, 2) // inferido por IA
+  processado      Boolean  @default(false) // já foi interpretado pela IA?
+  criadoEm        DateTime @default(now())
+
+  negociacao      Negociacao?
+}
+
+enum EstagioNegociacao {
+  NOVO_LEAD
+  QUALIFICACAO
+  ORCAMENTO_ENVIADO
+  NEGOCIACAO
+  FECHADO_GANHO
+  FECHADO_PERDIDO
+  PAUSADO
+}
+
+model Negociacao {
+  id             String   @id @default(cuid())
+  titulo         String   // ex: "Janelas - Residencial Silva"
+  estagio        EstagioNegociacao @default(NOVO_LEAD)
+  valorEstimado  Decimal? @db.Decimal(12, 2)
+  probabilidade  Int?     // 0-100, calculado por IA com base em padrões históricos
+  motivoPerdido  String?
+
+  leadId         String?  @unique
+  lead           Lead?    @relation(fields: [leadId], references: [id])
+
+  contatoId      String?
+  contato        Contato? @relation(fields: [contatoId], references: [id])
+
+  empresaId      String?
+  empresa        Empresa? @relation(fields: [empresaId], references: [id])
+
+  responsavelId  String
+  responsavel    Usuario  @relation(fields: [responsavelId], references: [id])
+
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+
+  orcamentos     Orcamento[]
+  followUps      FollowUp[]
+  conversas      Conversa[]
+  tarefas        Tarefa[]
+  documentos     Documento[]
+  eventosTimeline EventoTimeline[]
+}
+
+// ------------------------------------------------------------
+// FOLLOW-UP (o coração do sistema)
+// ------------------------------------------------------------
+
+enum StatusFollowUp {
+  PENDENTE
+  CONCLUIDO
+  ATRASADO
+  CANCELADO
+}
+
+enum CanalFollowUp {
+  WHATSAPP
+  LIGACAO
+  EMAIL
+  VISITA
+}
+
+model FollowUp {
+  id             String   @id @default(cuid())
+  negociacaoId   String
+  negociacao     Negociacao @relation(fields: [negociacaoId], references: [id])
+
+  responsavelId  String
+  responsavel    Usuario  @relation(fields: [responsavelId], references: [id])
+
+  canal          CanalFollowUp
+  dataAgendada   DateTime
+  status         StatusFollowUp @default(PENDENTE)
+
+  mensagemSugerida String?  // gerada por IA
+  prioridade       Int      @default(0) // calculada por IA (fila do dia)
+  motivoPrioridade String?  // "sem resposta há 4 dias" / "alto valor" etc — explicação em linguagem natural
+
+  criadoEm       DateTime @default(now())
+  concluidoEm    DateTime?
+}
+
+// ------------------------------------------------------------
+// WHATSAPP / CONVERSAS
+// ------------------------------------------------------------
+
+model Conversa {
+  id           String   @id @default(cuid())
+  negociacaoId String?
+  negociacao   Negociacao? @relation(fields: [negociacaoId], references: [id])
+  contatoId    String?
+  contato      Contato? @relation(fields: [contatoId], references: [id])
+  telefone     String
+  criadoEm     DateTime @default(now())
+
+  mensagens    Mensagem[]
+}
+
+enum DirecaoMensagem {
+  ENTRADA
+  SAIDA
+}
+
+model Mensagem {
+  id           String   @id @default(cuid())
+  conversaId   String
+  conversa     Conversa @relation(fields: [conversaId], references: [id])
+  direcao      DirecaoMensagem
+  conteudo     String
+  intencaoDetectada String? // ex: "pedindo orçamento", "reclamação", "confirmando visita" — IA
+  enviadaEm    DateTime @default(now())
+}
+
+// ------------------------------------------------------------
+// ORÇAMENTOS
+// ------------------------------------------------------------
+
+enum StatusOrcamento {
+  RASCUNHO
+  ENVIADO
+  APROVADO
+  REJEITADO
+  EXPIRADO
+}
+
+model Orcamento {
+  id            String   @id @default(cuid())
+  negociacaoId  String
+  negociacao    Negociacao @relation(fields: [negociacaoId], references: [id])
+  versao        Int      @default(1)
+  valorTotal    Decimal  @db.Decimal(12, 2)
+  desconto      Decimal? @db.Decimal(12, 2)
+  prazoEntrega  String?
+  status        StatusOrcamento @default(RASCUNHO)
+  itens         Json     // [{produto, quantidade, valorUnit, ...}]
+  criadoEm      DateTime @default(now())
+}
+
+// ------------------------------------------------------------
+// TAREFAS, DOCUMENTOS, TIMELINE
+// ------------------------------------------------------------
+
+model Tarefa {
+  id           String   @id @default(cuid())
+  negociacaoId String?
+  negociacao   Negociacao? @relation(fields: [negociacaoId], references: [id])
+  responsavelId String
+  responsavel  Usuario  @relation(fields: [responsavelId], references: [id])
+  titulo       String
+  concluida    Boolean  @default(false)
+  dataLimite   DateTime?
+  criadoEm     DateTime @default(now())
+}
+
+model Documento {
+  id           String   @id @default(cuid())
+  negociacaoId String
+  negociacao   Negociacao @relation(fields: [negociacaoId], references: [id])
+  nomeArquivo  String
+  url          String   // storage S3/R2
+  tipo         String?  // "orcamento_pdf", "planta", "foto_obra"
+  criadoEm     DateTime @default(now())
+}
+
+model EventoTimeline {
+  id           String   @id @default(cuid())
+  negociacaoId String
+  negociacao   Negociacao @relation(fields: [negociacaoId], references: [id])
+  tipo         String   // "mensagem_recebida", "orcamento_criado", "estagio_alterado" etc
+  descricao    String
+  criadoEm     DateTime @default(now())
+}
+
+// ------------------------------------------------------------
+// BASE DE CONHECIMENTO TÉCNICA (RAG para os agentes)
+// ------------------------------------------------------------
+
+model ArtigoTecnico {
+  id         String   @id @default(cuid())
+  titulo     String
+  categoria  String   // "vidros", "perfis", "ferragens", "normas", "instalacao"
+  conteudo   String
+  criadoEm   DateTime @default(now())
+}
+
+// ------------------------------------------------------------
+// SEGURANÇA: LOG DE ATIVIDADE (auditoria de ações de usuários)
+// ------------------------------------------------------------
+
+model LogAtividade {
+  id         String   @id @default(cuid())
+  usuarioId  String?
+  usuario    Usuario? @relation(fields: [usuarioId], references: [id])
+  acao       String   // "login", "negociacao_estagio_alterado", "orcamento_criado", "usuario_desativado" etc
+  entidade   String?  // "Negociacao", "Orcamento", "Usuario"...
+  entidadeId String?
+  ip         String?
+  criadoEm   DateTime @default(now())
+}
+
+// ------------------------------------------------------------
+// APRENDIZADO DE ESTILO DE VENDAS (Módulo 8)
+// ------------------------------------------------------------
+
+model PerfilEstiloVendas {
+  id              String   @id @default(cuid())
+  usuarioId       String   @unique
+  tomDeVoz        String   // descrição do tom observado (formal/informal, uso de emojis etc)
+  argumentosFortes String  // padrões de argumentação que mais aparecem em negociações ganhas
+  objecoesComuns  String   // objeções mais frequentes e como o vendedor costuma responder
+  fechamentosTipicos String // como o vendedor costuma conduzir o fechamento
+  amostrasAnalisadas Int   @default(0)
+  atualizadoEm    DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// AGENTES DE IA (auditoria de execuções)
+// ------------------------------------------------------------
+
+model ExecucaoAgente {
+  id           String   @id @default(cuid())
+  agente       String   // "follow_up", "prospeccao", "interpretacao_lead" etc
+  usuarioId    String?
+  usuario      Usuario? @relation(fields: [usuarioId], references: [id])
+  entradaResumo String
+  saidaResumo   String
+  sucesso      Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+}
