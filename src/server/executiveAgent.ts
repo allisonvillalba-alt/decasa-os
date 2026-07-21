@@ -16,7 +16,8 @@ export type InsightExecutivo = {
 };
 
 export async function gerarInsightsExecutivos(
-  indicadores: IndicadoresComerciais
+  indicadores: IndicadoresComerciais,
+  usuarioId?: string
 ): Promise<InsightExecutivo[]> {
   const prompt = `Você é o Diretor Comercial virtual da DeCasa Esquadrias (esquadrias de alumínio: portas, janelas, guarda-corpos, fachadas). Meta de vendas mensal: R$ ${indicadores.metaMensal.toLocaleString("pt-BR")}.
 
@@ -42,6 +43,7 @@ ${JSON.stringify(indicadores, null, 2)}`;
     await db.execucaoAgente.create({
       data: {
         agente: "executivo",
+        usuarioId,
         entradaResumo: `KPIs: ${indicadores.negociacoesAbertas} abertas, R$ ${indicadores.valorTotalEmAberto} em aberto`,
         saidaResumo: `${insights.length} insights gerados`,
         sucesso: true,
@@ -49,7 +51,16 @@ ${JSON.stringify(indicadores, null, 2)}`;
     });
 
     return insights;
-  } catch {
+  } catch (erro) {
+    await db.execucaoAgente.create({
+      data: {
+        agente: "executivo",
+        usuarioId,
+        entradaResumo: `KPIs: ${indicadores.negociacoesAbertas} abertas, R$ ${indicadores.valorTotalEmAberto} em aberto`,
+        saidaResumo: `Falha: ${(erro as Error).message}`.slice(0, 200),
+        sucesso: false,
+      },
+    });
     return fallbackInsights(indicadores);
   }
 }

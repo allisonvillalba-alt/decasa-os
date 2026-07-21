@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "../../../lib/db";
 import { buscarBaseTecnica } from "../../../server/knowledgeBase";
+import { exigirPapel } from "../../../lib/permissoes";
 
 const artigoSchema = z.object({
   titulo: z.string().min(3),
@@ -10,7 +11,12 @@ const artigoSchema = z.object({
 });
 
 // POST /api/base-tecnica — cadastra um artigo técnico
+// Restrito a ADMIN/GESTOR: conteúdo técnico usado pelo Agente Técnico para
+// responder cliente precisa de curadoria, não pode ser editado por qualquer um.
 export async function POST(req: NextRequest) {
+  const sessao = await exigirPapel(["ADMIN", "GESTOR"]);
+  if (sessao instanceof Response) return sessao;
+
   const body = await req.json().catch(() => null);
   const parsed = artigoSchema.safeParse(body);
 

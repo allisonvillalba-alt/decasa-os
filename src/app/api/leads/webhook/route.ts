@@ -3,6 +3,10 @@ import { z } from "zod";
 import { db } from "../../../../lib/db";
 import { interpretarLead } from "../../../../server/leadInterpreter";
 import { converterLeadEmNegociacao } from "../../../../server/negociacaoService";
+import { limiteExcedido } from "../../../../lib/rateLimit";
+
+const MAX_LEADS_POR_JANELA = 30;
+const JANELA_LEADS_SEGUNDOS = 60;
 
 /**
  * Endpoint único de entrada para leads de qualquer origem.
@@ -48,6 +52,12 @@ function segredoValido(req: NextRequest): boolean {
 export async function POST(req: NextRequest) {
   if (!segredoValido(req)) {
     return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
+  }
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "desconhecido";
+  const excedeu = await limiteExcedido(`leads-webhook:${ip}`, MAX_LEADS_POR_JANELA, JANELA_LEADS_SEGUNDOS);
+  if (excedeu) {
+    return NextResponse.json({ erro: "muitas requisições, tente novamente em instantes" }, { status: 429 });
   }
 
   const origemParam = req.nextUrl.searchParams.get("origem")?.toUpperCase();

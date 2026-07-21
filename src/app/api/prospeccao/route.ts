@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "../../../lib/db";
 import { pesquisarEmpresasProspeccao, salvarEmpresasProspectadas } from "../../../server/prospectionAgent";
+import { exigirPapel } from "../../../lib/permissoes";
+import { limiteExcedido } from "../../../lib/rateLimit";
 
 const criterioSchema = z.object({
   segmento: z.string().min(3),
@@ -9,8 +11,27 @@ const criterioSchema = z.object({
   quantidade: z.number().min(1).max(15).optional(),
 });
 
+const MAX_PROSPECCOES_POR_HORA = 10;
+
 // POST /api/prospeccao — dispara a pesquisa e salva os resultados
+// Restrito a ADMIN/GESTOR: cada chamada consome cota de busca+IA — decisão
+// de quando prospectar não deve ficar solta para qualquer vendedor.
 export async function POST(req: NextRequest) {
+  const sessao = await exigirPapel(["ADMIN", "GESTOR"]);
+  if (sessao instanceof Response) return sessao;
+
+  const excedeu = await limiteExcedido(
+    `prospeccao:${sessao.user.id}`,
+    MAX_PROSPECCOES_POR_HORA,
+    60 * 60
+  );
+  if (excedeu) {
+    return NextResponse.json(
+      { erro: "limite de prospecções por hora atingido, tente mais tarde" },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = criterioSchema.safeParse(body);
 
@@ -18,7 +39,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ erro: "payload inválido" }, { status: 400 });
   }
 
-  const encontradas = await pesquisarEmpresasProspeccao(parsed.data);
+  const encontradas = await pesquisarEmpresasProspeccao(parsed.data, sessao.user.id);
 
   if (encontradas.length === 0) {
     return NextResponse.json(

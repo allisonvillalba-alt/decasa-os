@@ -2,6 +2,11 @@ import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
+import { limiteExcedido } from "./rateLimit";
+import { authConfigEdge } from "./auth.config";
+
+const MAX_TENTATIVAS_LOGIN = 5;
+const JANELA_LOGIN_SEGUNDOS = 15 * 60; // 15 minutos
 
 /**
  * AUTENTICAÇÃO
@@ -15,8 +20,7 @@ import { db } from "./db";
  */
 
 export const authConfig: NextAuthConfig = {
-  session: { strategy: "jwt" },
-  pages: { signIn: "/login" },
+  ...authConfigEdge,
   providers: [
     Credentials({
       credentials: {
@@ -27,6 +31,18 @@ export const authConfig: NextAuthConfig = {
         const email = credentials?.email as string | undefined;
         const senha = credentials?.senha as string | undefined;
         if (!email || !senha) return null;
+
+        const bloqueado = await limiteExcedido(
+          `login:${email.toLowerCase()}`,
+          MAX_TENTATIVAS_LOGIN,
+          JANELA_LOGIN_SEGUNDOS
+        );
+        if (bloqueado) {
+          await db.logAtividade.create({
+            data: { acao: "login_bloqueado_rate_limit", entidade: "Usuario", entidadeId: email },
+          });
+          return null;
+        }
 
         const usuario = await db.usuario.findUnique({ where: { email } });
 
@@ -49,18 +65,15 @@ export const authConfig: NextAuthConfig = {
           data: { usuarioId: usuario.id, acao: "login" },
         });
 
-        return { id: usuario.id, name: usuario.nome, email: usuario.email, papel: usuario.papel } as any;
+        return { id: usuario.id, name: usuario.nome, email: usuario.email, papel: usuario.papel };
       },
     }),
   ],
   callbacks: {
+    ...authConfigEdge.callbacks,
     async jwt({ token, user }) {
-      if (user) token.papel = (user as any).papel;
+      if (user) token.papel = user.papel;
       return token;
-    },
-    async session({ session, token }) {
-      if (session.user) (session.user as any).papel = token.papel;
-      return session;
     },
   },
 };

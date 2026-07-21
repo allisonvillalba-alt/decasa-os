@@ -33,11 +33,14 @@ export type EmpresaProspectada = {
   };
 };
 
-export async function pesquisarEmpresasProspeccao(criterio: {
-  segmento: string; // ex: "construtoras de médio/alto padrão"
-  regiao: string; // ex: "São Paulo, SP"
-  quantidade?: number;
-}): Promise<EmpresaProspectada[]> {
+export async function pesquisarEmpresasProspeccao(
+  criterio: {
+    segmento: string; // ex: "construtoras de médio/alto padrão"
+    regiao: string; // ex: "São Paulo, SP"
+    quantidade?: number;
+  },
+  usuarioId?: string
+): Promise<EmpresaProspectada[]> {
   const prompt = `Você é um pesquisador de prospecção B2B para a DeCasa Esquadrias, fabricante de esquadrias de alumínio de alto padrão (portas, janelas, guarda-corpos, fachadas). Você atende construtoras, incorporadoras, escritórios de arquitetura e engenharias.
 
 Pesquise na web ${criterio.quantidade ?? 8} empresas reais do segmento "${criterio.segmento}" na região "${criterio.regiao}" que sejam boas oportunidades comerciais para fornecimento de esquadrias de alumínio.
@@ -73,6 +76,7 @@ Para cada empresa, retorne em JSON puro (array, sem markdown):
   await db.execucaoAgente.create({
     data: {
       agente: "prospeccao",
+      usuarioId,
       entradaResumo: `${criterio.segmento} em ${criterio.regiao}`,
       saidaResumo: `${empresas.length} empresas encontradas`,
       sucesso: empresas.length > 0,
