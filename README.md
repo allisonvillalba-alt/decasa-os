@@ -54,6 +54,7 @@ npm run dev
 ```bash
 curl -X POST "http://localhost:3000/api/leads/webhook?origem=WHATSAPP" \
   -H "Content-Type: application/json" \
+  -H "x-webhook-secret: $LEADS_WEBHOOK_SECRET" \
   -d '{
     "nome": "João Pedro",
     "telefone": "11999998888",
@@ -61,6 +62,11 @@ curl -X POST "http://localhost:3000/api/leads/webhook?origem=WHATSAPP" \
     "mensagem": "Preciso de orçamento urgente para 8 janelas de alumínio, obra entrega em 3 semanas"
   }'
 ```
+
+> **Segurança:** este endpoint exige o header `x-webhook-secret` batendo com
+> `LEADS_WEBHOOK_SECRET` do `.env` — sem isso, retorna 401. Qualquer
+> integração externa (landing page, Zapier, planilha) precisa mandar esse
+> header em toda chamada.
 
 Isso cria o Lead, a IA interpreta (produto, urgência, valor estimado) e a
 Negociação já aparece no Kanban em `/negociacoes`.
@@ -100,6 +106,11 @@ npx tsx src/server/jobs/dailyFollowUpJob.ts
 2. Apontar o webhook para `https://SEU_DOMINIO/api/whatsapp/webhook` com o
    verify token definido em `WHATSAPP_WEBHOOK_VERIFY_TOKEN`.
 3. Preencher `WHATSAPP_PHONE_NUMBER_ID` e `WHATSAPP_ACCESS_TOKEN` no `.env`.
+4. Preencher `WHATSAPP_APP_SECRET` no `.env` com o **App Secret** do app
+   (Configurações básicas do app na Meta — não é o Access Token). O webhook
+   usa isso para verificar a assinatura `X-Hub-Signature-256` de cada
+   mensagem recebida e **rejeita tudo enquanto essa variável estiver vazia**
+   — é proposital, não um bug.
 
 > Regra importante da Meta: mensagens iniciadas por você fora da janela de
 > 24h desde a última mensagem do cliente exigem templates pré-aprovados.
