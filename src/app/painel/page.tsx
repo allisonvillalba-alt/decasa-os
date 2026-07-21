@@ -151,7 +151,35 @@ export default function PaginaPainel() {
         <CartaoNumero rotulo="Conversão do mês" valor={`${kpi.taxaConversaoMes}%`} detalhe={`mês anterior: ${kpi.taxaConversaoMesAnterior}%`} />
       </section>
 
-      {/* 4. CLIENTES QUENTES */}
+      {/* 4. DESEMPENHO POR ANÚNCIO (Meta clique-para-WhatsApp) */}
+      {kpi.desempenhoPorAnuncio.length > 0 && (
+        <section
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            padding: 20,
+            marginBottom: 24,
+            boxShadow: "var(--shadow-card)",
+          }}
+        >
+          <h2 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.3, color: "var(--ink-muted)", margin: "0 0 12px" }}>
+            Desempenho por anúncio (Meta)
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {kpi.desempenhoPorAnuncio.map((a) => (
+              <div key={a.anuncio} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 13, fontWeight: 500 }}>{a.anuncio}</span>
+                <span className="font-mono" style={{ fontSize: 12, color: "var(--ink-muted)", whiteSpace: "nowrap" }}>
+                  {a.leads} lead{a.leads !== 1 ? "s" : ""} · {a.ganhas} fechada{a.ganhas !== 1 ? "s" : ""} · {brl(a.valorGanho)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 5. CLIENTES QUENTES */}
       {kpi.clientesQuentes.length > 0 && (
         <section
           style={{

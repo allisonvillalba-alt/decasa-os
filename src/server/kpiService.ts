@@ -39,6 +39,10 @@ export type IndicadoresComerciais = {
 
   // Clientes quentes
   clientesQuentes: { titulo: string; probabilidade: number; valor: number; diasParado: number }[];
+
+  // Desempenho por anúncio da Meta (clique-para-WhatsApp) — só aparece quando
+  // há leads com atribuição de anúncio capturada
+  desempenhoPorAnuncio: { anuncio: string; leads: number; ganhas: number; valorGanho: number }[];
 };
 
 const META_MENSAL = 150_000;
@@ -157,6 +161,26 @@ export async function calcularIndicadores(): Promise<IndicadoresComerciais> {
     (f) => f.estagio === "FECHADO_GANHO"
   ).length;
 
+  // Desempenho por anúncio (Meta clique-para-WhatsApp)
+  const leadsComAnuncio = await db.lead.findMany({
+    where: { anuncioMetaTitulo: { not: null } },
+    include: { negociacao: { select: { estagio: true, valorEstimado: true } } },
+  });
+  const anuncioMap = new Map<string, { leads: number; ganhas: number; valorGanho: number }>();
+  for (const lead of leadsComAnuncio) {
+    const chave = lead.anuncioMetaTitulo!;
+    const atual = anuncioMap.get(chave) ?? { leads: 0, ganhas: 0, valorGanho: 0 };
+    atual.leads += 1;
+    if (lead.negociacao?.estagio === "FECHADO_GANHO") {
+      atual.ganhas += 1;
+      atual.valorGanho += Number(lead.negociacao.valorEstimado ?? 0);
+    }
+    anuncioMap.set(chave, atual);
+  }
+  const desempenhoPorAnuncio = [...anuncioMap.entries()]
+    .map(([anuncio, dados]) => ({ anuncio, ...dados }))
+    .sort((a, b) => b.leads - a.leads);
+
   return {
     periodo: { inicio: seteDiasAtras.toISOString(), fim: agora.toISOString() },
 
@@ -200,6 +224,7 @@ export async function calcularIndicadores(): Promise<IndicadoresComerciais> {
     })),
 
     clientesQuentes,
+    desempenhoPorAnuncio,
   };
 }
 

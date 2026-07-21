@@ -11,6 +11,7 @@ export type NegociacaoCardData = {
   probabilidade: number | null;
   responsavel: { nome: string };
   followUps: { dataAgendada: string }[];
+  lead?: { anuncioMetaTitulo: string | null } | null;
 };
 
 const formatadorMoeda = new Intl.NumberFormat("pt-BR", {
@@ -63,6 +64,27 @@ export function NegociacaoCard({ negociacao }: { negociacao: NegociacaoCardData 
       <span className="font-mono" style={{ fontSize: 15, fontWeight: 500, color: "var(--blueprint)" }}>
         {negociacao.valorEstimado ? formatadorMoeda.format(negociacao.valorEstimado) : "—"}
       </span>
+
+      {negociacao.lead?.anuncioMetaTitulo && (
+        <span
+          title={`Veio do anúncio: ${negociacao.lead.anuncioMetaTitulo}`}
+          style={{
+            fontSize: 11,
+            fontWeight: 500,
+            color: "var(--success)",
+            background: "var(--success-tint)",
+            borderRadius: 999,
+            padding: "2px 8px",
+            width: "fit-content",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            maxWidth: "100%",
+          }}
+        >
+          Anúncio: {negociacao.lead.anuncioMetaTitulo}
+        </span>
+      )}
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ fontSize: 11, color: "var(--ink-muted)" }}>

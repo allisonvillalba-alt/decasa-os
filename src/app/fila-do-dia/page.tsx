@@ -21,7 +21,7 @@ type ItemFila = {
     id: string;
     titulo: string;
     valorEstimado: number | null;
-    lead: { nome: string | null; telefone: string | null } | null;
+    lead: { nome: string | null; telefone: string | null; anuncioMetaTitulo: string | null } | null;
     contato: { nome: string | null; telefone: string | null } | null;
   };
 };
@@ -162,6 +162,11 @@ export default function PaginaFilaDoDia() {
                       ? ` · ${formatadorMoeda.format(item.negociacao.valorEstimado)}`
                       : ""}
                   </p>
+                  {item.negociacao.lead?.anuncioMetaTitulo && (
+                    <p style={{ fontSize: 11, color: "var(--success)", margin: "4px 0 0" }}>
+                      Veio do anúncio: {item.negociacao.lead.anuncioMetaTitulo}
+                    </p>
+                  )}
                 </div>
                 <span className="font-mono" style={{ fontSize: 11, color: "var(--ink-faint)" }}>
                   #{indice + 1}

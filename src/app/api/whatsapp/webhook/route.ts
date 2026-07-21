@@ -90,16 +90,27 @@ export async function POST(req: NextRequest) {
       (c: any) => c.wa_id === telefone
     )?.profile?.name;
 
-    await processarMensagemRecebida(telefone, conteudo, nomePerfil);
+    // Presente só quando o cliente clicou num anúncio "clique para WhatsApp"
+    // da Meta — a própria Meta manda esses dados junto com a 1ª mensagem.
+    const referral: ReferralAnuncioMeta | undefined = msg.referral;
+
+    await processarMensagemRecebida(telefone, conteudo, nomePerfil, referral);
   }
 
   return NextResponse.json({ ok: true });
 }
 
+interface ReferralAnuncioMeta {
+  source_id?: string;
+  headline?: string;
+  ctwa_clid?: string;
+}
+
 async function processarMensagemRecebida(
   telefone: string,
   conteudo: string,
-  nomePerfil?: string
+  nomePerfil?: string,
+  referral?: ReferralAnuncioMeta
 ) {
   // 1. Já existe conversa com este telefone?
   let conversa = await db.conversa.findFirst({
@@ -115,6 +126,9 @@ async function processarMensagemRecebida(
         telefone,
         origem: "WHATSAPP",
         interesseBruto: conteudo,
+        anuncioMetaId: referral?.source_id,
+        anuncioMetaTitulo: referral?.headline,
+        anuncioMetaClickId: referral?.ctwa_clid,
       },
     });
 

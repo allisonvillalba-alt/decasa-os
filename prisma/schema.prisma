@@ -114,6 +114,12 @@ model Lead {
   processado      Boolean  @default(false) // já foi interpretado pela IA?
   criadoEm        DateTime @default(now())
 
+  // Atribuição de anúncio "clique para WhatsApp" da Meta — vem automaticamente
+  // no campo `referral` da primeira mensagem, quando o lead veio de um anúncio.
+  anuncioMetaId      String? // referral.source_id — ID do anúncio na Meta
+  anuncioMetaTitulo  String? // referral.headline — texto/título do criativo
+  anuncioMetaClickId String? // referral.ctwa_clid — cruza com o Gerenciador de Anúncios
+
   negociacao      Negociacao?
 }
 

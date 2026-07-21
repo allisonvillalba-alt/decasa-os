@@ -16,7 +16,7 @@ export async function GET() {
     include: {
       negociacao: {
         include: {
-          lead: { select: { nome: true, telefone: true } },
+          lead: { select: { nome: true, telefone: true, anuncioMetaTitulo: true } },
           contato: { select: { nome: true, telefone: true } },
         },
       },
