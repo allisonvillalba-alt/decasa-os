@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
   /* Superfícies — "chapa de alumínio escovado" */
@@ -15,8 +15,10 @@
 
   /* Marca — azul de planta técnica (blueprint) */
   --blueprint: #1D3557;
+  --blueprint-light: #3D6EA8;
   --blueprint-hover: #16283F;
   --blueprint-tint: #E8EEF4;
+  --gradient-primario: linear-gradient(135deg, #24466E 0%, #3D6EA8 100%);
 
   /* Sinalização — âmbar, como luz de alerta de painel de máquina */
   --signal: #E8A33D;
@@ -31,13 +33,24 @@
   --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --shadow-card: 0 1px 2px rgba(26, 29, 33, 0.06), 0 1px 1px rgba(26, 29, 33, 0.04);
-  --shadow-card-hover: 0 4px 12px rgba(26, 29, 33, 0.10);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  --shadow-card: 0 1px 2px rgba(26, 29, 33, 0.05), 0 1px 1px rgba(26, 29, 33, 0.04);
+  --shadow-card-hover: 0 12px 28px rgba(26, 29, 33, 0.12), 0 2px 6px rgba(26, 29, 33, 0.06);
+  --shadow-pop: 0 16px 40px rgba(26, 29, 33, 0.16), 0 4px 10px rgba(26, 29, 33, 0.08);
+
+  /* Curva "ease-out-expo" — usada em toda transição do sistema, dá a
+     sensação de resposta rápida no início e assentamento suave no final
+     (o mesmo tipo de movimento de produtos como Linear/Stripe). */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Papel de planta técnica — usado atrás de telas de acesso/vazias */
   --grid-line: rgba(29, 53, 87, 0.055);
+
+  --skeleton-base: #E9ECEF;
+  --skeleton-shine: #F6F7F8;
 }
 
 [data-theme='dark'] {
@@ -52,8 +65,10 @@
   --ink-faint: #6B7280;
 
   --blueprint: #5B84AC;
+  --blueprint-light: #83AAD4;
   --blueprint-hover: #6F97BC;
   --blueprint-tint: #1E2A36;
+  --gradient-primario: linear-gradient(135deg, #3D6EA8 0%, #5B84AC 100%);
 
   --signal: #E8A33D;
   --signal-tint: #2E2717;
@@ -64,6 +79,9 @@
   --danger-tint: #2B1D1B;
 
   --grid-line: rgba(91, 132, 172, 0.09);
+
+  --skeleton-base: #22262B;
+  --skeleton-shine: #2C3238;
 }
 
 * { box-sizing: border-box; }
@@ -94,68 +112,80 @@ body {
 }
 
 .campo-input {
-  padding: 10px 12px;
+  padding: 11px 13px;
   font-size: 14px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   font-family: var(--font-body);
-  background: var(--bg);
+  background: var(--surface);
   color: var(--ink);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
   width: 100%;
 }
+.campo-input:hover:not(:focus) { border-color: var(--border-strong); background: var(--bg); }
 .campo-input:focus {
   outline: none;
-  border-color: var(--blueprint);
-  box-shadow: 0 0 0 3px var(--blueprint-tint);
+  border-color: var(--blueprint-light);
+  box-shadow: 0 0 0 4px var(--blueprint-tint);
 }
 
 .botao-primario {
-  padding: 11px 14px;
+  padding: 11px 16px;
   font-size: 14px;
   font-weight: 600;
-  background: var(--blueprint);
+  background: var(--gradient-primario);
   color: #fff;
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background-color 0.15s ease, transform 0.05s ease;
+  box-shadow: 0 1px 2px rgba(26, 29, 33, 0.08), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), filter 0.2s var(--ease);
 }
-.botao-primario:hover:not(:disabled) { background: var(--blueprint-hover); }
-.botao-primario:active:not(:disabled) { transform: scale(0.99); }
-.botao-primario:disabled { opacity: 0.7; cursor: default; }
+.botao-primario:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+.botao-primario:active:not(:disabled) { transform: translateY(0) scale(0.98); filter: brightness(0.97); }
+.botao-primario:disabled { opacity: 0.6; cursor: default; }
 
 .botao-secundario {
   padding: 7px 14px;
   font-size: 13px;
   font-weight: 500;
-  background: transparent;
+  background: var(--surface);
   color: var(--ink-muted);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-family: var(--font-body);
-  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background-color 0.2s var(--ease), transform 0.15s var(--ease);
 }
 .botao-secundario:hover:not(:disabled) {
-  border-color: var(--blueprint);
+  border-color: var(--blueprint-light);
   color: var(--blueprint);
   background: var(--blueprint-tint);
+  transform: translateY(-1px);
 }
+.botao-secundario:active:not(:disabled) { transform: translateY(0) scale(0.98); }
 .botao-secundario:disabled { opacity: 0.6; cursor: default; }
 
 .cartao-negociacao {
-  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+  transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease), border-color 0.25s var(--ease);
 }
 .cartao-negociacao:hover {
   box-shadow: var(--shadow-card-hover);
-  transform: translateY(-1px);
+  transform: translateY(-3px) scale(1.01);
   border-color: var(--border-strong);
+}
+.cartao-negociacao:active {
+  transform: translateY(-1px) scale(0.99);
+  transition-duration: 0.1s;
 }
 
 .coluna-kanban {
   border-radius: var(--radius-md);
-  transition: background-color 0.15s ease;
+  transition: background-color 0.2s var(--ease);
   padding: 8px;
   margin: -8px;
 }
@@ -172,6 +202,18 @@ body {
   animation: girar-arco 0.9s linear infinite;
 }
 
+/* Esqueleto de carregamento — blocos que "respiram" enquanto o dado real
+   não chega, no lugar de um texto parado "Carregando…". */
+@keyframes respirar-esqueleto {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.esqueleto {
+  background: var(--skeleton-base);
+  border-radius: var(--radius-sm);
+  animation: respirar-esqueleto 1.4s var(--ease) infinite;
+}
+
 .nav-link {
   font-size: 13px;
   font-weight: 500;
@@ -179,10 +221,10 @@ body {
   text-decoration: none;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
-  transition: background-color 0.12s ease, color 0.12s ease;
+  transition: background-color 0.2s var(--ease), color 0.2s var(--ease), transform 0.15s var(--ease);
   display: block;
 }
-.nav-link:hover { background: var(--blueprint-tint); color: var(--blueprint); }
+.nav-link:hover { background: var(--blueprint-tint); color: var(--blueprint); transform: translateX(2px); }
 .nav-link[data-ativo='true'] {
   background: var(--blueprint-tint);
   color: var(--blueprint);
@@ -195,7 +237,33 @@ body {
   to { stroke-dashoffset: 0; }
 }
 .logo-power-on-arc {
-  animation: desenhar-arco 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+  animation: desenhar-arco 1.1s var(--ease) 0.15s forwards;
+}
+
+/* Entrada suave de conteúdo — página/cartão aparece com leve subida +
+   fade, em vez de simplesmente "estalar" na tela assim que o dado chega. */
+@keyframes entrar-suave {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.entrar-suave {
+  animation: entrar-suave 0.4s var(--ease) both;
+}
+
+/* Toasts */
+@keyframes toast-entrar {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toast-sair {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.96); }
+}
+.toast {
+  animation: toast-entrar 0.3s var(--ease) both;
+}
+.toast[data-saindo='true'] {
+  animation: toast-sair 0.2s var(--ease) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

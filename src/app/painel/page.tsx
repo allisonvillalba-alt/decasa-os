@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { IndicadoresComerciais } from "../../server/kpiService";
 import type { InsightExecutivo } from "../../server/executiveAgent";
 import { Carregando } from "../../components/Carregando";
+import { NumeroAnimado } from "../../components/NumeroAnimado";
 
 /**
  * PAINEL EXECUTIVO
@@ -138,17 +139,18 @@ export default function PaginaPainel() {
           marginBottom: 24,
         }}
       >
-        <CartaoNumero rotulo="Em negociação" valor={brl(kpi.valorTotalEmAberto)} detalhe={`${kpi.negociacoesAbertas} abertas`} />
+        <CartaoNumero rotulo="Em negociação" valor={kpi.valorTotalEmAberto} formatar={brl} detalhe={`${kpi.negociacoesAbertas} abertas`} />
         <CartaoNumero
           rotulo="Parado há 3+ dias"
-          valor={brl(kpi.valorParado3Dias)}
+          valor={kpi.valorParado3Dias}
+          formatar={brl}
           detalhe={`${kpi.negociacoesParadas3Dias} negociações`}
           critico={kpi.valorParado3Dias > 0}
         />
-        <CartaoNumero rotulo="Follow-ups hoje" valor={String(kpi.followUpsHoje)} detalhe={kpi.followUpsAtrasados > 0 ? `${kpi.followUpsAtrasados} atrasados` : "nenhum atrasado"} critico={kpi.followUpsAtrasados > 0} />
-        <CartaoNumero rotulo="Leads esta semana" valor={String(kpi.leadsNovosSemana)} detalhe={`semana anterior: ${kpi.leadsNovosSemanaAnterior}`} />
-        <CartaoNumero rotulo="Ganhas na semana" valor={brl(kpi.valorGanhoSemana)} detalhe={`${kpi.ganhasSemana} fechadas`} />
-        <CartaoNumero rotulo="Conversão do mês" valor={`${kpi.taxaConversaoMes}%`} detalhe={`mês anterior: ${kpi.taxaConversaoMesAnterior}%`} />
+        <CartaoNumero rotulo="Follow-ups hoje" valor={kpi.followUpsHoje} detalhe={kpi.followUpsAtrasados > 0 ? `${kpi.followUpsAtrasados} atrasados` : "nenhum atrasado"} critico={kpi.followUpsAtrasados > 0} />
+        <CartaoNumero rotulo="Leads esta semana" valor={kpi.leadsNovosSemana} detalhe={`semana anterior: ${kpi.leadsNovosSemanaAnterior}`} />
+        <CartaoNumero rotulo="Ganhas na semana" valor={kpi.valorGanhoSemana} formatar={brl} detalhe={`${kpi.ganhasSemana} fechadas`} />
+        <CartaoNumero rotulo="Conversão do mês" valor={kpi.taxaConversaoMes} formatar={(v) => `${Math.round(v)}%`} detalhe={`mês anterior: ${kpi.taxaConversaoMesAnterior}%`} />
       </section>
 
       {/* 4. DESEMPENHO POR ANÚNCIO (Meta clique-para-WhatsApp) */}
@@ -215,11 +217,13 @@ export default function PaginaPainel() {
 function CartaoNumero({
   rotulo,
   valor,
+  formatar = (v) => String(v),
   detalhe,
   critico,
 }: {
   rotulo: string;
-  valor: string;
+  valor: number;
+  formatar?: (v: number) => string;
   detalhe?: string;
   critico?: boolean;
 }) {
@@ -237,7 +241,7 @@ function CartaoNumero({
         {rotulo}
       </span>
       <span className="font-mono" style={{ fontSize: 20, fontWeight: 500, display: "block", margin: "6px 0 2px", color: critico ? "var(--danger)" : "var(--ink)" }}>
-        {valor}
+        <NumeroAnimado valor={valor} formatar={formatar} />
       </span>
       {detalhe && (
         <span style={{ fontSize: 11, color: "var(--ink-faint)" }}>{detalhe}</span>

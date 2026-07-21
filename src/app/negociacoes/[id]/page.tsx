@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { GaugeProbability } from "../../../components/GaugeProbability";
 import { Carregando } from "../../../components/Carregando";
+import { useToast } from "../../../components/Toast";
 
 const ESTAGIOS = [
   { valor: "NOVO_LEAD", rotulo: "Novo lead" },
@@ -48,12 +49,12 @@ type Negociacao = {
 export default function PaginaDetalheNegociacao() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { mostrarToast } = useToast();
 
   const [neg, setNeg] = useState<Negociacao | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const [salvo, setSalvo] = useState(false);
 
   const [titulo, setTitulo] = useState("");
   const [valorEstimado, setValorEstimado] = useState("");
@@ -80,7 +81,6 @@ export default function PaginaDetalheNegociacao() {
   async function salvar() {
     setSalvando(true);
     setErro(null);
-    setSalvo(false);
 
     const resp = await fetch(`/api/negociacoes/${id}`, {
       method: "PATCH",
@@ -95,15 +95,15 @@ export default function PaginaDetalheNegociacao() {
 
     if (!resp.ok) {
       setErro("Não foi possível salvar as alterações.");
+      mostrarToast("Não foi possível salvar as alterações.", "erro");
       setSalvando(false);
       return;
     }
 
     const atualizado = await resp.json();
     setNeg((atual) => (atual ? { ...atual, ...atualizado } : atual));
-    setSalvo(true);
+    mostrarToast("Alterações salvas.");
     setSalvando(false);
-    setTimeout(() => setSalvo(false), 2500);
   }
 
   if (carregando) {
@@ -243,7 +243,6 @@ export default function PaginaDetalheNegociacao() {
           <button onClick={salvar} disabled={salvando} className="botao-primario">
             {salvando ? "Salvando…" : "Salvar alterações"}
           </button>
-          {salvo && <span style={{ fontSize: 13, color: "var(--success)" }}>Salvo.</span>}
           {erro && <span style={{ fontSize: 13, color: "var(--danger)" }}>{erro}</span>}
         </div>
       </section>

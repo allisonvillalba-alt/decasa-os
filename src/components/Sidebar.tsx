@@ -7,6 +7,8 @@ import { ThemeToggle } from "./ThemeToggle";
 
 const ITENS_NAV = [
   { href: "/painel", label: "Painel" },
+  { href: "/agenda", label: "Agenda" },
+  { href: "/tarefas", label: "Tarefas" },
   { href: "/fila-do-dia", label: "Fila do dia" },
   { href: "/negociacoes", label: "Negociações" },
   { href: "/relatorios", label: "Relatórios" },

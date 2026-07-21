@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { auth, signOut } from "../lib/auth";
 import { scriptAntiFlashTema } from "../components/ThemeToggle";
 import { Sidebar } from "../components/Sidebar";
+import { ToastProvider } from "../components/Toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,14 +24,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: scriptAntiFlashTema }} />
       </head>
       <body>
-        {sessao?.user ? (
-          <div style={{ display: "flex", minHeight: "100vh" }}>
-            <Sidebar nomeUsuario={sessao.user.name ?? ""} acaoSair={sair} />
-            <main style={{ flex: 1 }}>{children}</main>
-          </div>
-        ) : (
-          children
-        )}
+        <ToastProvider>
+          {sessao?.user ? (
+            <div style={{ display: "flex", minHeight: "100vh" }}>
+              <Sidebar nomeUsuario={sessao.user.name ?? ""} acaoSair={sair} />
+              <main style={{ flex: 1 }}>{children}</main>
+            </div>
+          ) : (
+            children
+          )}
+        </ToastProvider>
       </body>
     </html>
   );

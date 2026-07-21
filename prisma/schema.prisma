@@ -96,6 +96,7 @@ enum OrigemLead {
   PLANILHA_IMPORTACAO
   PROSPECCAO_B2B
   INDICACAO
+  MANUAL
   OUTRO
 }
 
@@ -262,6 +263,12 @@ model Orcamento {
 // TAREFAS, DOCUMENTOS, TIMELINE
 // ------------------------------------------------------------
 
+enum PrioridadeTarefa {
+  BAIXA
+  MEDIA
+  ALTA
+}
+
 model Tarefa {
   id           String   @id @default(cuid())
   negociacaoId String?
@@ -269,6 +276,8 @@ model Tarefa {
   responsavelId String
   responsavel  Usuario  @relation(fields: [responsavelId], references: [id])
   titulo       String
+  descricao    String?
+  prioridade   PrioridadeTarefa @default(MEDIA)
   concluida    Boolean  @default(false)
   dataLimite   DateTime?
   criadoEm     DateTime @default(now())

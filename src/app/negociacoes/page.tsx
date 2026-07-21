@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { NegociacaoCard, type NegociacaoCardData } from "../../components/NegociacaoCard";
-import { Carregando } from "../../components/Carregando";
+import { SkeletonColunaKanban } from "../../components/Skeleton";
 
 const COLUNAS: { chave: string; titulo: string }[] = [
   { chave: "NOVO_LEAD", titulo: "Novo lead" },
@@ -41,22 +42,31 @@ export default function PaginaNegociacoes() {
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh", padding: 24 }}>
-      <header style={{ marginBottom: 20 }}>
-        <h1 className="font-display" style={{ fontSize: 22, fontWeight: 600, margin: 0, color: "var(--ink)" }}>
-          Negociações
-        </h1>
-        {carregando ? (
-          <div style={{ marginTop: 4 }}>
-            <Carregando texto="Carregando negociações…" />
-          </div>
-        ) : (
+      <header style={{ marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16 }}>
+        <div>
+          <h1 className="font-display" style={{ fontSize: 22, fontWeight: 600, margin: 0, color: "var(--ink)" }}>
+            Negociações
+          </h1>
           <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: "4px 0 0" }}>
-            {negociacoes.length} negociações em andamento
+            {carregando ? "Carregando…" : `${negociacoes.length} negociações em andamento`}
           </p>
-        )}
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Link href="/leads/importar" className="botao-secundario" style={{ textDecoration: "none", display: "inline-block" }}>
+            Importar planilha
+          </Link>
+          <Link href="/negociacoes/novo" className="botao-primario" style={{ textDecoration: "none", display: "inline-block" }}>
+            + Novo lead
+          </Link>
+        </div>
       </header>
 
-      <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8 }}>
+      {carregando ? (
+        <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8 }}>
+          {COLUNAS.map((c) => <SkeletonColunaKanban key={c.chave} />)}
+        </div>
+      ) : (
+      <div className="entrar-suave" style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8 }}>
         {COLUNAS.map((coluna) => {
           const itens = negociacoes.filter((n) => n.estagio === coluna.chave);
           const totalColuna = itens.reduce((s, n) => s + (n.valorEstimado ?? 0), 0);
@@ -128,6 +138,7 @@ export default function PaginaNegociacoes() {
           );
         })}
       </div>
+      )}
     </div>
   );
 }
