@@ -9,7 +9,7 @@ const ITENS_NAV = [
   { href: "/painel", label: "Painel" },
   { href: "/fila-do-dia", label: "Fila do dia" },
   { href: "/negociacoes", label: "Negociações" },
-  { href: "/prospeccao", label: "Prospecção B2B" },
+  { href: "/relatorios", label: "Relatórios" },
 ];
 
 export function Sidebar({
