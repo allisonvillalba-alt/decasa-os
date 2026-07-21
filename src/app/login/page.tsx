@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import Image from "next/image";
 
 export default function PaginaLogin() {
   const [email, setEmail] = useState("");
@@ -29,8 +30,8 @@ export default function PaginaLogin() {
 
   return (
     <div
+      className="blueprint-grid"
       style={{
-        background: "var(--bg)",
         minHeight: "100vh",
         display: "flex",
         alignItems: "center",
@@ -38,77 +39,105 @@ export default function PaginaLogin() {
         padding: 24,
       }}
     >
-      <form
-        onSubmit={entrar}
+      <div
         style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-md)",
-          padding: 32,
-          width: "100%",
-          maxWidth: 360,
-          boxShadow: "var(--shadow-card)",
           display: "flex",
           flexDirection: "column",
-          gap: 14,
+          alignItems: "center",
+          gap: 28,
+          width: "100%",
+          maxWidth: 380,
         }}
       >
-        <div style={{ marginBottom: 8 }}>
-          <h1 className="font-display" style={{ fontSize: 20, fontWeight: 700, margin: 0, color: "var(--blueprint)" }}>
+        <div style={{ position: "relative", width: 96, height: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="96" height="96" viewBox="0 0 96 96" style={{ position: "absolute", inset: 0 }} aria-hidden="true">
+            <circle cx="48" cy="48" r="44" fill="none" stroke="var(--border)" strokeWidth="1" />
+            <circle
+              className="logo-power-on-arc"
+              cx="48"
+              cy="48"
+              r="44"
+              fill="none"
+              stroke="var(--signal)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeDasharray="276.5"
+              strokeDashoffset="276.5"
+              transform="rotate(-90 48 48)"
+            />
+          </svg>
+          <Image src="/decasa-logo.png" alt="DeCasa" width={62} height={62} style={{ objectFit: "contain" }} priority />
+        </div>
+
+        <div style={{ textAlign: "center" }}>
+          <h1 className="font-display" style={{ fontSize: 22, fontWeight: 700, margin: 0, color: "var(--blueprint)", letterSpacing: "-0.01em" }}>
             DeCasa OS
           </h1>
-          <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: "4px 0 0" }}>
+          <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: "4px 0 0" }}>
             Sistema Operacional Comercial
           </p>
         </div>
 
-        <input
-          type="email"
-          required
-          placeholder="E-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={campoEstilo}
-        />
-        <input
-          type="password"
-          required
-          placeholder="Senha"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          style={campoEstilo}
-        />
+        <form
+          onSubmit={entrar}
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            padding: 28,
+            width: "100%",
+            boxShadow: "var(--shadow-card)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+          }}
+        >
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={rotuloEstilo}>E-mail</span>
+            <input
+              type="email"
+              required
+              autoFocus
+              placeholder="voce@decasa.com.br"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="campo-input"
+            />
+          </label>
 
-        {erro && (
-          <p style={{ fontSize: 12, color: "var(--danger)", margin: 0 }}>{erro}</p>
-        )}
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={rotuloEstilo}>Senha</span>
+            <input
+              type="password"
+              required
+              placeholder="••••••••"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              className="campo-input"
+            />
+          </label>
 
-        <button type="submit" disabled={enviando} style={botaoEstilo}>
-          {enviando ? "Entrando…" : "Entrar"}
-        </button>
-      </form>
+          {erro && (
+            <p style={{ fontSize: 13, color: "var(--danger)", margin: 0 }}>{erro}</p>
+          )}
+
+          <button type="submit" disabled={enviando} className="botao-primario">
+            {enviando ? "Entrando…" : "Entrar"}
+          </button>
+        </form>
+
+        <p className="font-mono" style={{ fontSize: 11, color: "var(--ink-faint)", margin: 0, letterSpacing: "0.02em" }}>
+          DECASA ESQUADRIAS · SISTEMA INTERNO
+        </p>
+      </div>
     </div>
   );
 }
 
-const campoEstilo: React.CSSProperties = {
-  padding: "10px 12px",
-  fontSize: 14,
-  border: "1px solid var(--border-strong)",
-  borderRadius: "var(--radius-sm)",
-  fontFamily: "var(--font-body)",
-  background: "var(--bg)",
-  color: "var(--ink)",
-};
-
-const botaoEstilo: React.CSSProperties = {
-  padding: "10px 14px",
-  fontSize: 14,
+const rotuloEstilo: React.CSSProperties = {
+  fontSize: 12,
   fontWeight: 600,
-  background: "var(--blueprint)",
-  color: "#fff",
-  border: "none",
-  borderRadius: "var(--radius-sm)",
-  cursor: "pointer",
-  marginTop: 6,
+  color: "var(--ink-muted)",
+  textTransform: "uppercase",
+  letterSpacing: "0.04em",
 };

@@ -25,8 +25,18 @@ export default auth((req) => {
     const url = new URL("/login", req.nextUrl.origin);
     return NextResponse.redirect(url);
   }
+
+  // Já logado tentando ver a tela de login de novo? Manda direto pro painel.
+  if (req.auth && req.nextUrl.pathname.startsWith("/login")) {
+    const url = new URL("/painel", req.nextUrl.origin);
+    return NextResponse.redirect(url);
+  }
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Além de _next/static|_next/image|favicon.ico, exclui qualquer arquivo
+  // estático servido direto de public/ (logo, imagens, etc.) — sem isso,
+  // o middleware redirecionava esses arquivos para /login e o otimizador
+  // de imagem do Next recebia HTML no lugar do arquivo, quebrando <Image>.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|webp|ico|avif)$).*)"],
 };

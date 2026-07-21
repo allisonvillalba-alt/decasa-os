@@ -35,6 +35,9 @@
   --radius-md: 10px;
   --shadow-card: 0 1px 2px rgba(26, 29, 33, 0.06), 0 1px 1px rgba(26, 29, 33, 0.04);
   --shadow-card-hover: 0 4px 12px rgba(26, 29, 33, 0.10);
+
+  /* Papel de planta técnica — usado atrás de telas de acesso/vazias */
+  --grid-line: rgba(29, 53, 87, 0.055);
 }
 
 [data-theme='dark'] {
@@ -59,6 +62,8 @@
   --success-tint: #16261E;
   --danger: #E0685A;
   --danger-tint: #2B1D1B;
+
+  --grid-line: rgba(91, 132, 172, 0.09);
 }
 
 * { box-sizing: border-box; }
@@ -76,6 +81,74 @@ body {
 :focus-visible {
   outline: 2px solid var(--blueprint);
   outline-offset: 2px;
+}
+
+/* Papel de planta técnica: malha fina de referência, como papel milimetrado
+   de prancheta — usada atrás de telas de acesso e estados vazios. */
+.blueprint-grid {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.campo-input {
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+}
+.campo-input:focus {
+  outline: none;
+  border-color: var(--blueprint);
+  box-shadow: 0 0 0 3px var(--blueprint-tint);
+}
+
+.botao-primario {
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--blueprint);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+.botao-primario:hover:not(:disabled) { background: var(--blueprint-hover); }
+.botao-primario:active:not(:disabled) { transform: scale(0.99); }
+.botao-primario:disabled { opacity: 0.7; cursor: default; }
+
+.nav-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.12s ease, color 0.12s ease;
+  display: block;
+}
+.nav-link:hover { background: var(--blueprint-tint); color: var(--blueprint); }
+.nav-link[data-ativo='true'] {
+  background: var(--blueprint-tint);
+  color: var(--blueprint);
+  font-weight: 600;
+}
+
+/* Arco "ligando" ao redor da logo — o mesmo motivo visual do manômetro de
+   probabilidade (GaugeProbability), como o painel de uma máquina acendendo. */
+@keyframes desenhar-arco {
+  to { stroke-dashoffset: 0; }
+}
+.logo-power-on-arc {
+  animation: desenhar-arco 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
