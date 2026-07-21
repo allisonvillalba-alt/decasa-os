@@ -38,7 +38,18 @@ const payloadSchema = z.object({
   mensagem: z.string().min(1, "mensagem é obrigatória para a IA interpretar o lead"),
 });
 
+function segredoValido(req: NextRequest): boolean {
+  const esperado = process.env.LEADS_WEBHOOK_SECRET;
+  if (!esperado) return false; // nunca aceitar requisição sem segredo configurado
+  const recebido = req.headers.get("x-webhook-secret");
+  return recebido === esperado;
+}
+
 export async function POST(req: NextRequest) {
+  if (!segredoValido(req)) {
+    return NextResponse.json({ erro: "não autorizado" }, { status: 401 });
+  }
+
   const origemParam = req.nextUrl.searchParams.get("origem")?.toUpperCase();
 
   if (!origemParam || !origensValidas.includes(origemParam as any)) {

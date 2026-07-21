@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "crypto";
 import { gerarTexto } from "../../../../lib/ai";
 import { db } from "../../../../lib/db";
 import { converterLeadEmNegociacao } from "../../../../server/negociacaoService";
@@ -35,9 +36,41 @@ export async function GET(req: NextRequest) {
   return new NextResponse("Forbidden", { status: 403 });
 }
 
+/**
+ * Verifica a assinatura HMAC-SHA256 que a Meta envia em todo POST de webhook
+ * (header X-Hub-Signature-256), calculada sobre o corpo bruto da requisição
+ * usando o App Secret do app da Meta. Sem isso, qualquer um que descubra a
+ * URL poderia forjar mensagens de WhatsApp que nunca existiram de verdade.
+ */
+function assinaturaValida(corpoBruto: string, assinaturaRecebida: string | null): boolean {
+  const appSecret = process.env.WHATSAPP_APP_SECRET;
+  if (!appSecret || !assinaturaRecebida) return false;
+
+  const esperada =
+    "sha256=" + createHmac("sha256", appSecret).update(corpoBruto).digest("hex");
+
+  const bufEsperado = Buffer.from(esperada);
+  const bufRecebido = Buffer.from(assinaturaRecebida);
+  if (bufEsperado.length !== bufRecebido.length) return false;
+
+  return timingSafeEqual(bufEsperado, bufRecebido);
+}
+
 // POST: mensagens recebidas
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null);
+  const corpoBruto = await req.text();
+  const assinatura = req.headers.get("x-hub-signature-256");
+
+  if (!assinaturaValida(corpoBruto, assinatura)) {
+    return NextResponse.json({ erro: "assinatura inválida" }, { status: 401 });
+  }
+
+  let body: any = null;
+  try {
+    body = JSON.parse(corpoBruto);
+  } catch {
+    return NextResponse.json({ erro: "payload inválido" }, { status: 400 });
+  }
 
   // Estrutura padrão do payload da Meta Cloud API
   const mensagens = body?.entry?.[0]?.changes?.[0]?.value?.messages;
