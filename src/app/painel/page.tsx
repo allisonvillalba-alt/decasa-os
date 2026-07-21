@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { IndicadoresComerciais } from "../../server/kpiService";
 import type { InsightExecutivo } from "../../server/executiveAgent";
+import { Carregando } from "../../components/Carregando";
 
 /**
  * PAINEL EXECUTIVO
@@ -39,9 +40,7 @@ export default function PaginaPainel() {
   if (!dados) {
     return (
       <div style={{ background: "var(--bg)", minHeight: "100vh", padding: 24 }}>
-        <p style={{ color: "var(--ink-muted)", fontSize: 14 }}>
-          Analisando sua operação…
-        </p>
+        <Carregando texto="Analisando sua operação…" />
       </div>
     );
   }

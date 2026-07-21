@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef } from "react";
+import { useRouter } from "next/navigation";
 import { GaugeProbability } from "./GaugeProbability";
 
 export type NegociacaoCardData = {
@@ -18,6 +20,8 @@ const formatadorMoeda = new Intl.NumberFormat("pt-BR", {
 });
 
 export function NegociacaoCard({ negociacao }: { negociacao: NegociacaoCardData }) {
+  const router = useRouter();
+  const arrastando = useRef(false);
   const proximoFollowUp = negociacao.followUps[0];
   const atrasado =
     proximoFollowUp && new Date(proximoFollowUp.dataAgendada) < new Date();
@@ -25,13 +29,25 @@ export function NegociacaoCard({ negociacao }: { negociacao: NegociacaoCardData 
   return (
     <div
       draggable
+      className="cartao-negociacao"
+      onDragStart={() => {
+        arrastando.current = true;
+      }}
+      onClick={() => {
+        // Um drag concluído não deveria abrir o card — só um clique de verdade.
+        if (arrastando.current) {
+          arrastando.current = false;
+          return;
+        }
+        router.push(`/negociacoes/${negociacao.id}`);
+      }}
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border)",
         borderRadius: "var(--radius-md)",
         padding: 12,
         boxShadow: "var(--shadow-card)",
-        cursor: "grab",
+        cursor: "pointer",
         display: "flex",
         flexDirection: "column",
         gap: 8,

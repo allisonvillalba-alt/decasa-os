@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { NegociacaoCard, type NegociacaoCardData } from "../../components/NegociacaoCard";
+import { Carregando } from "../../components/Carregando";
 
 const COLUNAS: { chave: string; titulo: string }[] = [
   { chave: "NOVO_LEAD", titulo: "Novo lead" },
@@ -17,6 +18,7 @@ type Negociacao = NegociacaoCardData & { estagio: string };
 export default function PaginaNegociacoes() {
   const [negociacoes, setNegociacoes] = useState<Negociacao[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [colunaAlvo, setColunaAlvo] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/negociacoes")
@@ -43,9 +45,15 @@ export default function PaginaNegociacoes() {
         <h1 className="font-display" style={{ fontSize: 22, fontWeight: 600, margin: 0, color: "var(--ink)" }}>
           Negociações
         </h1>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: "4px 0 0" }}>
-          {carregando ? "Carregando…" : `${negociacoes.length} negociações em andamento`}
-        </p>
+        {carregando ? (
+          <div style={{ marginTop: 4 }}>
+            <Carregando texto="Carregando negociações…" />
+          </div>
+        ) : (
+          <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: "4px 0 0" }}>
+            {negociacoes.length} negociações em andamento
+          </p>
+        )}
       </header>
 
       <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8 }}>
@@ -56,10 +64,17 @@ export default function PaginaNegociacoes() {
           return (
             <div
               key={coluna.chave}
-              onDragOver={(e) => e.preventDefault()}
+              className="coluna-kanban"
+              data-sobre-alvo={colunaAlvo === coluna.chave}
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (colunaAlvo !== coluna.chave) setColunaAlvo(coluna.chave);
+              }}
+              onDragLeave={() => setColunaAlvo((atual) => (atual === coluna.chave ? null : atual))}
               onDrop={(e) => {
                 const negociacaoId = e.dataTransfer.getData("text/plain");
                 if (negociacaoId) moverParaEstagio(negociacaoId, coluna.chave);
+                setColunaAlvo(null);
               }}
               style={{
                 minWidth: 260,
@@ -77,6 +92,11 @@ export default function PaginaNegociacoes() {
                   {itens.length}
                 </span>
               </div>
+              {totalColuna > 0 && (
+                <span className="font-mono" style={{ fontSize: 12, color: "var(--ink-muted)", marginTop: -6 }}>
+                  {totalColuna.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })}
+                </span>
+              )}
 
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {itens.map((negociacao) => (

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { EtapaCadencia } from "../../server/cadenceAgent";
+import { Carregando } from "../../components/Carregando";
 
 type EmpresaProspectada = {
   id: string;
@@ -80,18 +81,26 @@ export default function PaginaProspeccao() {
           value={segmento}
           onChange={(e) => setSegmento(e.target.value)}
           placeholder="Segmento (ex: escritórios de arquitetura)"
-          style={campoEstilo}
+          className="campo-input"
+          style={{ flex: 1, minWidth: 200 }}
         />
         <input
           value={regiao}
           onChange={(e) => setRegiao(e.target.value)}
           placeholder="Região (ex: São Paulo, SP)"
-          style={campoEstilo}
+          className="campo-input"
+          style={{ flex: 1, minWidth: 200 }}
         />
-        <button onClick={pesquisar} disabled={buscando} style={botaoPrimario}>
+        <button onClick={pesquisar} disabled={buscando} className="botao-primario">
           {buscando ? "Pesquisando…" : "Pesquisar empresas"}
         </button>
       </div>
+
+      {buscando && (
+        <div style={{ marginBottom: 16 }}>
+          <Carregando texto="Pesquisando empresas na web…" />
+        </div>
+      )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {empresas.map((empresa) => (
@@ -143,16 +152,15 @@ export default function PaginaProspeccao() {
 
             <button
               onClick={() => abrirCadencia(empresa.id)}
-              style={{ ...botaoSecundario, marginTop: 12 }}
+              className="botao-secundario"
+              style={{ marginTop: 12 }}
             >
               Gerar cadência de prospecção
             </button>
 
             {cadenciaAberta === empresa.id && (
               <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-                {gerandoCadencia && (
-                  <p style={{ fontSize: 12, color: "var(--ink-faint)" }}>Escrevendo cadência…</p>
-                )}
+                {gerandoCadencia && <Carregando texto="Escrevendo cadência…" />}
                 {cadencia.map((etapa, i) => (
                   <div
                     key={i}
@@ -189,37 +197,3 @@ export default function PaginaProspeccao() {
     </div>
   );
 }
-
-const campoEstilo: React.CSSProperties = {
-  flex: 1,
-  minWidth: 200,
-  padding: "9px 12px",
-  fontSize: 13,
-  border: "1px solid var(--border-strong)",
-  borderRadius: "var(--radius-sm)",
-  fontFamily: "var(--font-body)",
-  background: "var(--bg)",
-  color: "var(--ink)",
-};
-
-const botaoPrimario: React.CSSProperties = {
-  padding: "9px 16px",
-  fontSize: 13,
-  fontWeight: 500,
-  background: "var(--blueprint)",
-  color: "#fff",
-  border: "none",
-  borderRadius: "var(--radius-sm)",
-  cursor: "pointer",
-};
-
-const botaoSecundario: React.CSSProperties = {
-  padding: "7px 14px",
-  fontSize: 13,
-  fontWeight: 500,
-  background: "transparent",
-  color: "var(--blueprint)",
-  border: "1px solid var(--blueprint)",
-  borderRadius: "var(--radius-sm)",
-  cursor: "pointer",
-};

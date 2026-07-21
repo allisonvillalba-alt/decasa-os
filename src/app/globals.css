@@ -125,6 +125,53 @@ body {
 .botao-primario:active:not(:disabled) { transform: scale(0.99); }
 .botao-primario:disabled { opacity: 0.7; cursor: default; }
 
+.botao-secundario {
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--ink-muted);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+.botao-secundario:hover:not(:disabled) {
+  border-color: var(--blueprint);
+  color: var(--blueprint);
+  background: var(--blueprint-tint);
+}
+.botao-secundario:disabled { opacity: 0.6; cursor: default; }
+
+.cartao-negociacao {
+  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+.cartao-negociacao:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+}
+
+.coluna-kanban {
+  border-radius: var(--radius-md);
+  transition: background-color 0.15s ease;
+  padding: 8px;
+  margin: -8px;
+}
+.coluna-kanban[data-sobre-alvo='true'] {
+  background: var(--blueprint-tint);
+}
+
+/* Indicador de carregamento — o mesmo arco de "ligando" da tela de login,
+   em loop, pra reforçar que é o mesmo sistema pensando/processando. */
+@keyframes girar-arco {
+  to { transform: rotate(360deg); }
+}
+.indicador-carregando-arco {
+  animation: girar-arco 0.9s linear infinite;
+}
+
 .nav-link {
   font-size: 13px;
   font-weight: 500;

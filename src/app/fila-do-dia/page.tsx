@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Carregando } from "../../components/Carregando";
 
 /**
  * FILA DO DIA
@@ -92,13 +93,17 @@ export default function PaginaFilaDoDia() {
         <h1 className="font-display" style={{ fontSize: 22, fontWeight: 600, margin: 0 }}>
           Fila do dia
         </h1>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: "6px 0 0" }}>
-          {carregando
-            ? "Montando sua fila…"
-            : fila.length === 0
+        {carregando ? (
+          <div style={{ marginTop: 6 }}>
+            <Carregando texto="Montando sua fila…" />
+          </div>
+        ) : (
+          <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: "6px 0 0" }}>
+            {fila.length === 0
               ? "Tudo em dia. Nenhum cliente esperando follow-up."
               : `${fila.length} clientes precisam de você hoje — ${formatadorMoeda.format(totalEmJogo)} em negociações.`}
-        </p>
+          </p>
+        )}
       </header>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -186,22 +191,19 @@ export default function PaginaFilaDoDia() {
 
               <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                 {item.mensagemSugerida ? (
-                  <button
-                    onClick={() => copiarMensagem(item.mensagemSugerida!)}
-                    style={botao("primario")}
-                  >
+                  <button onClick={() => copiarMensagem(item.mensagemSugerida!)} className="botao-primario">
                     Copiar mensagem
                   </button>
                 ) : (
                   <button
                     onClick={() => gerarMensagem(item.id)}
                     disabled={gerandoPara === item.id}
-                    style={botao("primario")}
+                    className="botao-primario"
                   >
                     {gerandoPara === item.id ? "Escrevendo…" : "Gerar mensagem"}
                   </button>
                 )}
-                <button onClick={() => concluir(item.id)} style={botao("secundario")}>
+                <button onClick={() => concluir(item.id)} className="botao-secundario">
                   Marcar como feito
                 </button>
               </div>
@@ -211,25 +213,4 @@ export default function PaginaFilaDoDia() {
       </div>
     </div>
   );
-}
-
-function botao(variante: "primario" | "secundario"): React.CSSProperties {
-  const base: React.CSSProperties = {
-    fontSize: 13,
-    fontWeight: 500,
-    padding: "7px 14px",
-    borderRadius: "var(--radius-sm)",
-    cursor: "pointer",
-    border: "1px solid transparent",
-    fontFamily: "var(--font-body)",
-  };
-  if (variante === "primario") {
-    return { ...base, background: "var(--blueprint)", color: "#fff" };
-  }
-  return {
-    ...base,
-    background: "transparent",
-    color: "var(--ink-muted)",
-    border: "1px solid var(--border-strong)",
-  };
 }
